@@ -9,10 +9,10 @@ echo $PAT
 #echo $short
 echo INPUT DIR: ${INPUT_DIR}
 echo OUTDIR DIR: ${OUTPUT_DIR}
-docker run \
-  -v "${INPUT_DIR}":"/input" \
-  -v "${OUTPUT_DIR}":"/output" \
-  gcr.io/deepvariant-docker/deepvariant:"${BIN_VERSION}" \
+singluarity shell \
+  -B "${INPUT_DIR}":"/input" \
+  -B"${OUTPUT_DIR}":"/output" \
+  deepvariant_gpu.0.8.0.simg \
   /opt/deepvariant/bin/run_deepvariant \
   --model_type=PACBIO \
   --ref=/input/peregrine/asm-r3-pg0.1.5.3/p_ctg_cns.fa \
