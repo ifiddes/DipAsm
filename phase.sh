@@ -13,14 +13,14 @@ set -ex
 
 echo HapCUT2 phasing
 
-\time -v parallel 'extractHAIRS --bam $HIC/hic.{}.bam --hic 1 --VCF $VCF/pacbioccs.{}.filtered.vcf --out hapcut2/hic.{}.frag --maxIS 30000000 2> hapcut2/extractHAIRS.{}.log' ::: $SCAFFOLDS 2> extractHAIRS.log
-\time -v parallel 'HAPCUT2 --fragments hapcut2/hic.{}.frag --VCF $VCF/pacbioccs.{}.filtered.vcf --output hapcut2/hic.{}.hap --hic 1 2> hapcut2/HAPCUT2.{}.log' ::: $SCAFFOLDS  2> HAPCUT2.log
+time -v parallel 'extractHAIRS --bam $HIC/hic.{}.bam --hic 1 --VCF $VCF/pacbioccs.{}.filtered.vcf --out hapcut2/hic.{}.frag --maxIS 30000000 2> hapcut2/extractHAIRS.{}.log' ::: $SCAFFOLDS 2> extractHAIRS.log
+time -v parallel 'HAPCUT2 --fragments hapcut2/hic.{}.frag --VCF $VCF/pacbioccs.{}.filtered.vcf --output hapcut2/hic.{}.hap --hic 1 2> hapcut2/HAPCUT2.{}.log' ::: $SCAFFOLDS  2> HAPCUT2.log
 parallel "cut -d$'\t' -f1-11 hapcut2/hic.{}.hap > hapcut2/hic.{}.hap.cut" ::: $SCAFFOLDS
 parallel 'whatshap hapcut2vcf $VCF/pacbioccs.{}.filtered.vcf hapcut2/hic.{}.hap.cut -o hapcut2/hic.{}.phased.vcf' ::: $SCAFFOLDS
 
 echo WhatsHap phasing
 
-\time -v parallel 'whatshap phase --reference $REF $VCF/pacbioccs.{}.filtered.vcf hapcut2/hic.{}.phased.vcf alignment/pacbioccs/split/pacbioccs.{}.bam -o whatshap/pacbioccs.hic.{}.whatshap.phased.vcf 2> whatshap/whatshap.{}.log' ::: $SCAFFOLDS  2> whatshap.phase.log
+time -v parallel 'whatshap phase --reference $REF $VCF/pacbioccs.{}.filtered.vcf hapcut2/hic.{}.phased.vcf alignment/pacbioccs/split/pacbioccs.{}.bam -o whatshap/pacbioccs.hic.{}.whatshap.phased.vcf 2> whatshap/whatshap.{}.log' ::: $SCAFFOLDS  2> whatshap.phase.log
 
 parallel 'bgzip -c whatshap/pacbioccs.hic.{}.whatshap.phased.vcf > whatshap/pacbioccs.hic.{}.whatshap.phased.vcf.gz' ::: $SCAFFOLDS
 parallel 'tabix -p vcf whatshap/pacbioccs.hic.{}.whatshap.phased.vcf.gz' ::: $SCAFFOLDS
@@ -39,7 +39,7 @@ exit
 [ -d largestBlock_vcf ] || mkdir -p largestBlock_vcf
 [ -d largestBlock_haplotagBAM ] || mkdir -p largestBlock_haplotagBAM
 
-for CHR in $SCAFFOLDS; do 
+for CHR in $SCAFFOLDS; do
   PS=`grep -v '^#' whatshap/pacbioccs.hic.${CHR}.whatshap.phased.vcf | grep 'PS' | cut -d':' -f13 | sort | uniq -cd | sort -k1nr | head -1 | awk '{print $2}'`
   grep -E "^#|$PS$" whatshap/pacbioccs.hic.${CHR}.whatshap.phased.vcf > largestBlock_vcf/pacbioccs.hic.${CHR}.phased.largestBlock.vcf
 done

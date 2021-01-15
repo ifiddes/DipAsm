@@ -1,7 +1,10 @@
-INPUT_DIR="$HOSTWD/test_output/out/"
-OUTPUT_DIR="$HOSTWD/test_output/out/alignment/pacbioccs/vcf"
+INPUT_DIR=$PWD/alignment/pacbioccs/split
+OUTPUT_DIR=$PWD/alignment/pacbioccs/vcf
 BIN_VERSION="0.8.0"
-SCAFF=$2
+REF=$1
+GCORES=$2
+SCAFF=$3
+
 PAT=`echo $SCAFF | sed 's/\([^\\]\);/\1\\\\;/g' | sed 's/\([^\\]\)=/\1\\\\=/g'`
 echo $PAT
 
@@ -9,14 +12,15 @@ echo $PAT
 #echo $short
 echo INPUT DIR: ${INPUT_DIR}
 echo OUTDIR DIR: ${OUTPUT_DIR}
-docker run \
-  -v "${INPUT_DIR}":"/input" \
-  -v "${OUTPUT_DIR}":"/output" \
-  gcr.io/deepvariant-docker/deepvariant:"${BIN_VERSION}" \
+docker run --gpus 1 \
+  -v "${INPUT_DIR}:/input" \
+  -v "${OUTPUT_DIR}:/output" \
+  -v "$(dirname "${REF}")":/data/ \
+  gcr.io/deepvariant-docker/deepvariant:"${BIN_VERSION}-gpu" \
   /opt/deepvariant/bin/run_deepvariant \
   --model_type=PACBIO \
-  --ref=/input/peregrine/asm-r3-pg0.1.5.3/p_ctg_cns.fa \
-  --reads=/input/alignment/pacbioccs/split/"pacbioccs.${PAT}.bam" \
+  --ref=/data/"$(basename "${REF}")" \
+  --reads="/input/pacbioccs.${PAT}.bam" \
   --output_vcf="/output/pacbioccs.${PAT}.vcf.gz" \
   --regions "${PAT}" \
-  --num_shards=16
+  --num_shards="${GCORES}"

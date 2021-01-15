@@ -10,17 +10,16 @@ parser.add_argument('--pb-path', metavar = 'PATH', type = str, required = True,
                      help = 'Use PacBioCCS data from this path. All fastq will be used.')
 parser.add_argument('--sample', metavar = 'NAME', type = str, required = True,
                      help = 'Sample name to put for Read Group of BAM and Sample of VCF.')
-parser.add_argument('--female', action = 'store_true',
-                     help = 'When sample is a female, specify this to also do phasing on chrX.')
 parser.add_argument('--prefix', metavar = 'STR', type = str, required = True,
                      help = 'Prefix name for the experiment, for example "refBased", "ragooBased".')
+parser.add_argument("--cores", type=str, required=True, help="local cores")
 args = parser.parse_args()
 
 if args.female:
     female = 'TRUE'
 else:
     female = 'FALSE'
-commands = [args.hic_path, args.pb_path, args.sample, female, args.prefix]
+commands = [args.hic_path, args.pb_path, args.sample, args.prefix, args.cores]
 commands = './pipeline.sh ' + ' '.join(commands)
 print(commands)
 #process = subprocess.Popen(commands, shell = True, stdout=subprocess.PIPE)
